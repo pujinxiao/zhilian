@@ -3,7 +3,7 @@ import re,requests,places_name
 from lxml import etree
 import pymysql,sys
 import logging,time,random
-
+urls=places_name.get_start_url()
 '''保存日志方便查看'''
 logging.basicConfig(filename='logging.log',
                     format='%(asctime)s %(message)s',
@@ -32,7 +32,7 @@ def CreateTable():
                  "lt null,公司福利 varchar(255) default null,职位月薪 varchar(255) default null,工作地点 varchar(255) default null,发布日期 varchar(255) defa" \
                  "ult null,工作性质 varchar(255) default null,工作经验 varchar(255) default null,最低学历 varchar(255) default null,招聘人数 varchar(255) default null,职位类别 varchar(255) default null,职位描述 TEXT,详细工作地点 varc" \
                  "har(255) default null,公司介绍 text,公司规模 varchar(255) default null,公司性质 varchar(255) default null,公司行业 varchar(255) defa" \
-                 "ult null,公司主页 varchar(255) default null,公司地址 varchar(255) default null,primary key(id)) ENGINE=MyISAM DEFAULT CHARSET=utf8"
+                 "ult null,公司主页 varchar(255) default null,公司地址 varchar(255) default null,关键词 varchar(255) default null,primary key(id)) ENGINE=MyISAM DEFAULT CHARSET=utf8"
     cur.execute(create_sql)
     db.commit()
     db.close()
@@ -127,9 +127,10 @@ def get_content(job_url):
                      str(company_nature[0]),
                      str(company_industry[0]),
                      str(company_home_link[0]),
-                     str(company_place[0].strip())]
+                     str(company_place[0].strip()),
+                     str(keyword)]
         insert_sql = 'insert into zhilian(职位名称,职位链接,公司名称,公司链接,公司福利,职位月薪,工作地点,发布日期,工作性' \
-                     '质,工作经验,最低学历,招聘人数,职位类别,职位描述,详细工作地点,公司介绍,公司规模,公司性质,公司行业,公司主页,公司地址)value(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+                     '质,工作经验,最低学历,招聘人数,职位类别,职位描述,详细工作地点,公司介绍,公司规模,公司性质,公司行业,公司主页,公司地址,关键词)value(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
         print '第' + str(count) + '个抓取成功', item_list
         log='第' + str(count) + '个抓取成功  '+','.join(item_list[0:13])
         logging.info(log)
@@ -196,24 +197,28 @@ def get_page(url):
                 continue
 
 
-start_urls=places_name.get_start_url()
-for start_url in start_urls:
-    '''循环各城市url'''
-    html=requests.get(start_url,headers=header,timeout=10)
-    response=etree.HTML(html.content)
-    for i in response.xpath('/html/body/div[3]/div[3]/div[1]/div[3]/div[1]/div[2]'):
-        '''循环各城市的区url'''
-        area_url = i.xpath('a/@href')[1:]
-    area_url = ['http://sou.zhaopin.com' + i for i in area_url]
-    p_rint8=area_url
-    print area_url
-    logging.info(p_rint8)
-    for i in area_url:
-        '''遍历城市的取url，准备抓取页数总数'''
-        try:
-            get_page(i)
-        except Exception,e:
-            p_rint9=e,'--------get_page'
-            print e,'--------get_page'
-            logging.info(p_rint9)
-            continue
+
+global keyword
+for tp in urls:
+    keyword = tp[0]
+    start_urls = tp[1]
+    for start_url in start_urls:
+        '''循环各城市url'''
+        html=requests.get(start_url,headers=header,timeout=10)
+        response=etree.HTML(html.content)
+        for i in response.xpath('/html/body/div[3]/div[3]/div[1]/div[3]/div[1]/div[2]'):
+            '''循环各城市的区url'''
+            area_url = i.xpath('a/@href')[1:]
+        area_url = ['http://sou.zhaopin.com' + i for i in area_url]
+        p_rint8=area_url
+        print area_url
+        logging.info(p_rint8)
+        for i in area_url:
+            '''遍历城市的取url，准备抓取页数总数'''
+            try:
+                get_page(i)
+            except Exception,e:
+                p_rint9=e,'--------get_page'
+                print e,'--------get_page'
+                logging.info(p_rint9)
+                continue
