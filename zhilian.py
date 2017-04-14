@@ -196,8 +196,6 @@ def get_page(url):
                 logging.info(p_rint7)
                 continue
 
-
-
 global keyword
 for tp in urls:
     keyword = tp[0]
