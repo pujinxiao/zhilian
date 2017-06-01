@@ -47,7 +47,7 @@ def get_content(job_url):
     p=random.randint(1,3)
     time.sleep(p)
     html=requests.get(job_url,headers=header,timeout=10)
-    response = etree.HTML(html.content)
+    response = etree.HTML(html.content.decode('utf-8'))
     link=job_url  #职位链接
     if u'jobs.zhaopin' in link:
         for i in response.xpath('//div[@class="inner-left fl"]'):
